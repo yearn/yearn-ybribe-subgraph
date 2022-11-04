@@ -1,0 +1,62 @@
+
+type BribeV3 @entity {
+  id: ID!
+  description: String!
+  numberValue: BigInt
+  stringValue: String
+  addressValue: Bytes
+}
+
+type Gauge @entity {
+  id: ID!
+  address: Bytes!
+  rewards: [GaugeReward!]! @derivedFrom(field: "gauge")
+}
+
+type GaugeReward @entity {
+  " Gauge + Reward Token "
+  id: ID!
+  briber: Account!
+  gauge: Gauge!
+  reward: Token!
+  amount: BigInt!
+  period: BigInt!
+  feeTokens: [FeeToken!]! @derivedFrom(field: "from")
+}
+
+type FeeToken @entity {
+  " Gauge + Reward Token as GaugeReward id "
+  id: ID!
+  from: GaugeReward!
+  token: Token!
+  amount: BigInt!
+}
+
+type Fee @entity {
+  " Token "
+  id: ID!
+  token: Token!
+  total: BigInt!
+  fees: [FeeToken!]!
+}
+
+type Token @entity {
+  id: ID!
+  decimals: Int!
+  name: String!
+  symbol: String!
+}
+
+## A user, briber
+type Account @entity {
+  id: ID!
+  isBlacklisted: Boolean!
+  claims: [RewardTokenClaim!]! @derivedFrom(field: "account")
+}
+
+type RewardTokenClaim @entity {
+  id: ID!
+  gaugeReward: GaugeReward!
+  account: Account!
+  amount: BigInt!
+}
