@@ -1,0 +1,56 @@
+specVersion: 0.0.4
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: yBribe
+    network: mainnet
+    source:
+      startBlock: 15878000
+      address: "0x03dFdBcD4056E2F92251c7B07423E1a33a7D3F6d"
+      abi: yBribe
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - RewardTokenClaim
+        - Account
+        - Token
+        - GaugeReward
+        - Gauge
+        - BribeV3
+        - Fee
+        - FeeToken
+      abis:
+        - name: yBribe
+          file: ./abis/yBribe.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Blacklisted(indexed address)
+          handler: handleBlacklisted
+        - event: ChangeOwner(address)
+          handler: handleChangeOwner
+        - event: NewTokenReward(indexed address,indexed address)
+          handler: handleNewTokenReward
+        - event: RemovedFromBlacklist(indexed address)
+          handler: handleRemovedFromBlacklist
+        - event: RewardAdded(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleRewardAdded
+        - event: RewardClaimed(indexed address,indexed address,indexed address,uint256)
+          handler: handleRewardClaimed
+        - event: ClearRewardRecipient(indexed address,address)
+          handler: handleClearRewardRecipient
+        - event: FeeUpdated(uint256)
+          handler: handleFeeUpdated
+        - event: PeriodUpdated(indexed address,indexed uint256,uint256,uint256)
+          handler: handlePeriodUpdated
+        - event: SetRewardRecipient(indexed address,address)
+          handler: handleSetRewardRecipient
+      callHandlers:
+        - function: claim_reward(address,address)
+          handler: handleClaim_reward
+        - function: claim_reward_for(address,address,address)
+          handler: handleClaim_rewardFor
+      file: ./src/mappings/yBribeMapping.ts

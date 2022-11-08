@@ -60,3 +60,19 @@ type RewardTokenClaim @entity {
   account: Account!
   amount: BigInt!
 }
+
+type RewardRecipient @entity {
+  " User (account) wallet address "
+  id: ID!
+  account: Account!
+  recipient: Account!
+}
+
+type GaugePeriod @entity {
+  " Gauge + Period "
+  id: ID!
+  gauge: Gauge!
+  period: BigInt!
+  bias: BigInt!
+  blacklistedBias: BigInt!
+}

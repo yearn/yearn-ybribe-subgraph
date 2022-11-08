@@ -104,7 +104,6 @@ dist
 .tern-port
 
 build
-subgraph.yaml
 package-lock.json
 .idea
 analysis

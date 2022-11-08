@@ -5,17 +5,23 @@ import {
   RemovedFromBlacklist as RemovedFromBlacklistEvent,
   RewardAdded as RewardAddedEvent,
   RewardClaimed as RewardClaimedEvent,
+  ClearRewardRecipient as ClearRewardRecipientEvent,
+  FeeUpdated as FeeUpdatedEvent,
+  PeriodUpdated as PeriodUpdatedEvent,
+  SetRewardRecipient as SetRewardRecipientEvent,
   Claim_rewardCall,
-  Claim_reward_forCall
+  Claim_reward_forCall,
 } from "../../generated/yBribe/yBribe";
 import {
   yBribe as yBribeContract
 } from "../../generated/yBribe/yBribe";
 import * as accounts from "../utils/accounts";
-import { OWNER } from "../utils/consts";
+import { FEE_PERCENT, OWNER } from "../utils/consts";
 import * as bribe from "../utils/yBribe";
 import * as gaugeRewards from "../utils/gaugeRewards";
 import * as rewardTokenClaims from "../utils/rewardTokenClaims";
+import * as rewardRecipients from "../utils/rewardRecipients";
+import * as gaugePeriods from "../utils/gaugePeriods";
 import { log } from "@graphprotocol/graph-ts";
 
 export function handleBlacklisted(event: BlacklistedEvent): void {
@@ -65,13 +71,25 @@ export function handleRewardClaimed(event: RewardClaimedEvent): void {
 }
 
 export function handleClaim_reward(call: Claim_rewardCall): void {
-  /*
   let gauge = call.inputs.gauge;
   let rewardToken = call.inputs.reward_token;
   let amount = call.outputs.value0;
   let user = call.transaction.from;
+  log.info("Handler claim_rewards yBribe: {} User: {} RewardToken: {} TxHash: {}", [
+    call.to.toHexString(),
+    user.toHexString(),
+    rewardToken.toHexString(),
+    call.transaction.hash.toHexString()
+  ]);
+
+  if (!gaugeRewards.hasGaugeReward(gauge, rewardToken)) {
+    log.warning("[handleClaim_reward] Gauge reward does not exist in TxHash: {}", [call.transaction.hash.toHexString()]);
+    return;
+  }
+
   let yBribeInstance = yBribeContract.bind(call.to);
   let currentPeriod = yBribeInstance.current_period();
+  
   rewardTokenClaims.getOrCreateRewardTokenClaim(
     gauge,
     user,
@@ -80,7 +98,6 @@ export function handleClaim_reward(call: Claim_rewardCall): void {
     currentPeriod,
     call.transaction,
   );
-  */
 }
 
 export function handleClaim_rewardFor(call: Claim_reward_forCall): void {
@@ -90,12 +107,18 @@ export function handleClaim_rewardFor(call: Claim_reward_forCall): void {
   let user = call.inputs.user;
   let yBribeInstance = yBribeContract.bind(call.to);
   let currentPeriod = yBribeInstance.current_period();
-  log.info("handleClaim_rewardFor Gauge {} Token {} User {} Tx {}", [
+  log.info("[handleClaim_rewardFor] Gauge {} Token {} User {} Tx {}", [
     gauge.toHexString(),
     rewardToken.toHexString(),
     user.toHexString(),
     call.transaction.hash.toHexString()
   ]);
+
+  if (!gaugeRewards.hasGaugeReward(gauge, rewardToken)) {
+    log.warning("[handleClaim_rewardFor] Gauge reward does not exist in TxHash: {}", [call.transaction.hash.toHexString()]);
+    return;
+  }
+
   rewardTokenClaims.getOrCreateRewardTokenClaim(
     gauge,
     user,
@@ -106,11 +129,32 @@ export function handleClaim_rewardFor(call: Claim_reward_forCall): void {
   );
 }
 
-/*
-export function handleClearRewardRecipient(event: ClearRewardRecipient): void {}
-export function handleFeeUpdated(event: FeeUpdated): void {}
-export function handlePeriodUpdated(event: PeriodUpdated): void {}
+export function handleClearRewardRecipient(event: ClearRewardRecipientEvent): void {
+  rewardRecipients.createRewardRecipient(
+    event.params.user,
+    event.params.recipient,
+    event.transaction
+  );
+}
 
+export function handleSetRewardRecipient(event: SetRewardRecipientEvent): void {
+  rewardRecipients.createRewardRecipient(
+    event.params.user,
+    event.params.recipient,
+    event.transaction
+  );
+}
 
-export function handleSetRewardRecipient(event: SetRewardRecipient): void {}
-*/
+export function handleFeeUpdated(event: FeeUpdatedEvent): void {
+  bribe.createOrUpdateBigInt(FEE_PERCENT, FEE_PERCENT, event.params.fee);
+}
+
+export function handlePeriodUpdated(event: PeriodUpdatedEvent): void {
+  bribe.updateBribe(event.address);
+  gaugePeriods.getOrCreateGaugePeriod(
+    event.params.gauge,
+    event.params.period,
+    event.params.bias,
+    event.params.blacklisted_bias
+  );
+}
