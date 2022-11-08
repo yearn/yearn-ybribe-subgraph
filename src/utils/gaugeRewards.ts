@@ -15,6 +15,20 @@ export function createId(
   .concat(rewardAddress.toHexString());//.concat('-').concat(period.toString())
 }
 
+export function hasGaugeReward(
+  gaugeAddress: Address,
+  rewardAddress: Address,
+): boolean {
+  let id = createId(gaugeAddress, rewardAddress);
+  let entity = GaugeReward.load(id);
+  log.info("[GaugeReward] Exist gauge ({}) reward ({})? {}", [
+    gaugeAddress.toHexString(),
+    rewardAddress.toHexString(),
+    (entity !== null).toString()
+  ]);
+  return entity !== null;
+}
+
 export function getOrCreateGaugeReward(
   briberAddress: Address,
   gaugeAddress: Address,
@@ -29,7 +43,7 @@ export function getOrCreateGaugeReward(
   let gauge = gauges.getOrCreateGauge(gaugeAddress);
   let id = createId(gaugeAddress, rewardAddress);
   let entity = GaugeReward.load(id);
-  log.warning("Creating Gauge Reward gauge {} reward {} period {}", [
+  log.info("Creating Gauge Reward gauge {} reward {} period {}", [
     gaugeAddress.toHexString(),
     rewardAddress.toHexString(),
     period.toString()
