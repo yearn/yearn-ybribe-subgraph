@@ -1,5 +1,5 @@
 import { Address, BigInt, ethereum, log } from '@graphprotocol/graph-ts';
-import { GaugeReward } from '../../generated/schema';
+import { EthTx, GaugeReward } from '../../generated/schema';
 import * as accounts from "../utils/accounts";
 import * as tokens from "../utils/tokens";
 import * as gauges from "../utils/gauges";
@@ -36,10 +36,11 @@ export function getOrCreateGaugeReward(
   amount: BigInt,
   fee: BigInt,
   period: BigInt,
-  tx: ethereum.Transaction,
+  ethTx: EthTx,
+  tx: ethereum.Event
 ): GaugeReward {
   let reward = tokens.getOrCreateToken(rewardAddress);
-  let briber = accounts.getOrCreateAccount(briberAddress, false);
+  let briber = accounts.getOrCreateAccount(briberAddress, false, ethTx);
   let gauge = gauges.getOrCreateGauge(gaugeAddress);
   let id = createId(gaugeAddress, rewardAddress);
   let entity = GaugeReward.load(id);
@@ -55,9 +56,12 @@ export function getOrCreateGaugeReward(
     entity.reward = reward.id;
     entity.amount = amount;
     entity.period = period;
+    entity.rewardsAddedAt = ethTx.id;
+    entity.timestamp = ethTx.timestamp;
+    entity.blockNumber = ethTx.blockNumber;
     entity.save();
   }
-  feeTokens.createFeeToken(entity, fee, tx);
+  feeTokens.createFeeToken(entity, fee, tx.transaction);
   return entity;
 }
 

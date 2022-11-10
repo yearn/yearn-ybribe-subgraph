@@ -1,4 +1,31 @@
 
+type EthTx @entity {
+  " Transaction hash + Log Index "
+  id: ID!
+  " Log index related to the event. A Transaction might contain multiple events "
+  logIndex: BigInt!
+  " The transaction sender "
+  from: Bytes!
+  " Gas price used in the transaction "
+  gasPrice: BigInt!
+  " Gas limit used in the transaction "
+  gasLimit: BigInt!
+  " Transaction hash "
+  hash: Bytes!
+  " The transaction index "
+  index: BigInt!
+  " Address that received the transaction "
+  to: Bytes!
+  " Ether value sent in the transaction "
+  value: BigInt!
+  " Timestamp when the transaction was executed "
+  timestamp: BigInt!
+  " Gas limit used in the current block "
+  blockGasLimit: BigInt!
+  " Block number "
+  blockNumber: BigInt!
+}
+
 type BribeV3 @entity {
   id: ID!
   description: String!
@@ -22,6 +49,12 @@ type GaugeReward @entity {
   amount: BigInt!
   period: BigInt!
   feeTokens: [FeeToken!]! @derivedFrom(field: "from")
+  " Timestamp when the transaction was executed "
+  timestamp: BigInt!
+  " Block number "
+  blockNumber: BigInt!
+  " The Ethereum transaction where the rewards were added "
+  rewardsAddedAt: EthTx!
 }
 
 type FeeToken @entity {
@@ -52,6 +85,7 @@ type Account @entity {
   id: ID!
   isBlacklisted: Boolean!
   claims: [RewardTokenClaim!]! @derivedFrom(field: "account")
+  createdAt: EthTx!
 }
 
 type RewardTokenClaim @entity {
