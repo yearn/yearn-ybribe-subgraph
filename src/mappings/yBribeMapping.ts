@@ -22,10 +22,12 @@ import * as gaugeRewards from "../utils/gaugeRewards";
 import * as rewardTokenClaims from "../utils/rewardTokenClaims";
 import * as rewardRecipients from "../utils/rewardRecipients";
 import * as gaugePeriods from "../utils/gaugePeriods";
+import * as ethTxs from "../utils/ethTxs";
 import { log } from "@graphprotocol/graph-ts";
 
 export function handleBlacklisted(event: BlacklistedEvent): void {
-  accounts.getOrCreateAccount(event.params.user, true);
+  let ethTx = ethTxs.createEthTxFromEvent(event);
+  accounts.getOrCreateAccount(event.params.user, true, ethTx);
 }
 
 export function handleChangeOwner(event: ChangeOwnerEvent): void {
@@ -33,7 +35,8 @@ export function handleChangeOwner(event: ChangeOwnerEvent): void {
 }
 
 export function handleRemovedFromBlacklist(event: RemovedFromBlacklistEvent): void {
-  accounts.updateBlacklist(event.params.user, false);
+  let ethTx = ethTxs.createEthTxFromEvent(event);
+  accounts.updateBlacklist(event.params.user, false, ethTx);
 }
 
 export function handleNewTokenReward(event: NewTokenRewardEvent): void {
@@ -41,6 +44,7 @@ export function handleNewTokenReward(event: NewTokenRewardEvent): void {
 }
 
 export function handleRewardAdded(event: RewardAddedEvent): void {
+  let ethTx = ethTxs.createEthTxFromEvent(event);
   let yBribeInstance = yBribeContract.bind(event.address);
   let currentPeriod = yBribeInstance.current_period();
 
@@ -51,7 +55,8 @@ export function handleRewardAdded(event: RewardAddedEvent): void {
     event.params.amount,
     event.params.fee,
     currentPeriod,
-    event.transaction
+    ethTx,
+    event
   );
 }
 
@@ -86,7 +91,7 @@ export function handleClaim_reward(call: Claim_rewardCall): void {
     log.warning("[handleClaim_reward] Gauge reward does not exist in TxHash: {}", [call.transaction.hash.toHexString()]);
     return;
   }
-
+  let ethTx = ethTxs.createEthTxFromCall(call);
   let yBribeInstance = yBribeContract.bind(call.to);
   let currentPeriod = yBribeInstance.current_period();
   
@@ -96,7 +101,7 @@ export function handleClaim_reward(call: Claim_rewardCall): void {
     rewardToken,
     amount,
     currentPeriod,
-    call.transaction,
+    ethTx,
   );
 }
 
@@ -119,29 +124,32 @@ export function handleClaim_rewardFor(call: Claim_reward_forCall): void {
     return;
   }
 
+  let ethTx = ethTxs.createEthTxFromCall(call);
   rewardTokenClaims.getOrCreateRewardTokenClaim(
     gauge,
     user,
     rewardToken,
     amount,
     currentPeriod,
-    call.transaction,
+    ethTx,
   );
 }
 
 export function handleClearRewardRecipient(event: ClearRewardRecipientEvent): void {
+  let ethTx = ethTxs.createEthTxFromEvent(event);
   rewardRecipients.createRewardRecipient(
     event.params.user,
     event.params.recipient,
-    event.transaction
+    ethTx
   );
 }
 
 export function handleSetRewardRecipient(event: SetRewardRecipientEvent): void {
+  let ethTx = ethTxs.createEthTxFromEvent(event);
   rewardRecipients.createRewardRecipient(
     event.params.user,
     event.params.recipient,
-    event.transaction
+    ethTx
   );
 }
 

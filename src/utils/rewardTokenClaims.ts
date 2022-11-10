@@ -1,5 +1,5 @@
-import { Address, BigInt, ethereum } from '@graphprotocol/graph-ts';
-import { RewardTokenClaim } from '../../generated/schema';
+import { Address, BigInt } from '@graphprotocol/graph-ts';
+import { EthTx, RewardTokenClaim } from '../../generated/schema';
 import * as accounts from "../utils/accounts";
 import * as gaugeRewards from "../utils/gaugeRewards";
 
@@ -9,11 +9,11 @@ export function getOrCreateRewardTokenClaim(
   rewardAddress: Address,
   amount: BigInt,
   period: BigInt,
-  tx: ethereum.Transaction
+  ethTx: EthTx
 ): RewardTokenClaim | null{
   let gaugeReward = gaugeRewards.getGaugeReward(gaugeAddress, rewardAddress, period);
-  let account = accounts.getOrCreateAccount(userAddress, false);
-  let id = tx.hash.toHexString().concat('-').concat(tx.index.toString());;
+  let account = accounts.getOrCreateAccount(userAddress, false, ethTx);
+  let id = ethTx.hash.toHexString().concat('-').concat(ethTx.logIndex.toString());;
   let entity = RewardTokenClaim.load(id);
   if (entity == null) {
     entity = new RewardTokenClaim(id);
