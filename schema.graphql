@@ -110,3 +110,11 @@ type GaugePeriod @entity {
   bias: BigInt!
   blacklistedBias: BigInt!
 }
+
+type TotalTokenBribe @entity {
+  " Token Address "
+  id: ID!
+  bribe: Token!
+  amount: BigInt!
+  claimed: BigInt!
+}
