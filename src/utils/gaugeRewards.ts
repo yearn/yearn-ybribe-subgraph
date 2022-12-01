@@ -4,6 +4,7 @@ import * as accounts from "../utils/accounts";
 import * as tokens from "../utils/tokens";
 import * as gauges from "../utils/gauges";
 import * as feeTokens from "../utils/feeTokens";
+import * as totalTokenBribes from "../utils/totalTokenBribes";
 
 export function createId(
   gaugeAddress: Address,
@@ -62,6 +63,7 @@ export function getOrCreateGaugeReward(
     entity.save();
   }
   feeTokens.createFeeToken(entity, fee, tx.transaction);
+  totalTokenBribes.createOrUpdateTotalTokenBribes(rewardAddress, amount);
   return entity;
 }
 

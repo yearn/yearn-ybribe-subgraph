@@ -2,6 +2,7 @@ import { Address, BigInt } from '@graphprotocol/graph-ts';
 import { EthTx, RewardTokenClaim } from '../../generated/schema';
 import * as accounts from "../utils/accounts";
 import * as gaugeRewards from "../utils/gaugeRewards";
+import * as totalTokenBribes from "../utils/totalTokenBribes";
 
 export function getOrCreateRewardTokenClaim(
   gaugeAddress: Address,
@@ -23,5 +24,6 @@ export function getOrCreateRewardTokenClaim(
     entity.amount = amount;
     entity.save();
   }
+  totalTokenBribes.updateClaimedAmount(rewardAddress, amount);
   return entity;
 }
